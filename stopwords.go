@@ -33,7 +33,9 @@ type StopwordFilter struct {
 
 func (sf *StopwordFilter) dump(p []byte) {
 	sf.dumpMode = true
+
 	for ; len(sf.word) > 0 && sf.j < len(p)-1; sf.j++ {
+
 		poppedLetter := sf.word[0]
 		sf.word = sf.word[1:]
 		p[sf.j] = poppedLetter
@@ -49,7 +51,10 @@ func (sf *StopwordFilter) Read(p []byte) (n int, err error) {
 	letter := make([]byte, 1, 1)
 	if sf.dumpMode {
 		sf.dump(p)
+		return sf.j, nil
 	}
+
+	// Reset the pointer at the end
 	defer func() {
 		sf.j = 0
 	}()
@@ -57,11 +62,13 @@ func (sf *StopwordFilter) Read(p []byte) (n int, err error) {
 	for {
 		n, err := sf.source.Read(letter)
 		if err == io.EOF {
-
 			if isStopWord(string(sf.word)) {
 				sf.word = make([]byte, 0, 0)
 			} else {
 				sf.dump(p)
+				if sf.dumpMode {
+					return sf.j, nil
+				}
 			}
 			return sf.j, nil
 		} else if n == 1 {
@@ -69,18 +76,20 @@ func (sf *StopwordFilter) Read(p []byte) (n int, err error) {
 			if strings.Contains(punctuation, string(letter[0])) {
 				continue
 			} else if letter[0] == ' ' {
-
 				if isStopWord(string(sf.word)) {
 					sf.word = make([]byte, 0, 0)
 				} else {
 					sf.dump(p)
+					if sf.dumpMode {
+						return sf.j, nil
+					}
 				}
 			} else {
 				sf.word = append(sf.word, letter[0])
 			}
 		} else if n == 0 {
 			// True EOF
-			return sf.j, io.EOF
+			return 0, io.EOF
 		}
 	}
 }
