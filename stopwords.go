@@ -42,51 +42,51 @@ func (sf *StopwordFilter) dump(p []byte) bool {
 	}
 	if len(sf.word) == 0 {
 		sf.dumpMode = false
-		p[sf.j] = ' '
-		sf.j++
 	}
 	return sf.dumpMode
 }
 
 func (sf *StopwordFilter) filterAndDump(p []byte) bool {
-	if isStopWord(string(sf.word)) {
+	// Delete the last character (space) when running the check
+	word := sf.word
+	if len(word) > 0 {
+		word = word[:len(word)-1]
+	}
+	if isStopWord(string(word)) {
 		sf.word = make([]byte, 0, 0)
 		return false
 	}
 	return sf.dump(p)
 }
 
-func (sf *StopwordFilter) Read(p []byte) (n int, err error) {
+func (sf *StopwordFilter) Read(buffer []byte) (n int, err error) {
 	letter := make([]byte, 1, 1)
+	sf.j = 0
+
 	if sf.dumpMode {
-		sf.dump(p)
+		sf.dump(buffer)
 		return sf.j, nil
 	}
-
-	// Reset the pointer at the end
-	defer func() {
-		sf.j = 0
-	}()
 
 	for {
 		n, err := sf.source.Read(letter)
 		if err == io.EOF {
-			sf.filterAndDump(p)
+			sf.filterAndDump(buffer)
 			return sf.j, nil
 		} else if n == 1 {
-			// If space read
 			if strings.Contains(punctuation, string(letter[0])) {
+				// Skip letter if it is punctuation
 				continue
-			} else if letter[0] == ' ' {
-				if sf.filterAndDump(p) {
-					return sf.j, nil
-				}
 			} else {
+				// Accumulate word letters
 				sf.word = append(sf.word, letter[0])
+				if letter[0] == ' ' {
+					// Dump all accumulated word letters and append a space
+					if sf.filterAndDump(buffer) {
+						return sf.j, nil
+					}
+				}
 			}
-		} else if n == 0 {
-			// True EOF
-			return sf.j, io.EOF
 		}
 	}
 }
