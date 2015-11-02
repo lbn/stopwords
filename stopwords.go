@@ -1,12 +1,13 @@
 package stopwords
 
 import (
-	"bufio"
+	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
 	"sort"
 	"strings"
+
+	"github.com/connectedventures/stopwords/corpus"
 )
 
 var languages = []string{
@@ -17,12 +18,11 @@ var languages = []string{
 
 const punctuation = "!@£$%^&*()-_+¡€#,<.>/?`~'\"[{}];:\\|"
 
-var words = make([]string, 0, 0)
-
-func isStopWord(token string) bool {
+func (sf *StopwordFilter) isStopWord(token string) bool {
 	token = strings.ToLower(token)
-	index := sort.SearchStrings(words, token)
-	return index >= 0 && index < len(words) && words[index] == token
+	fmt.Println(token)
+	index := sort.SearchStrings(sf.words, token)
+	return index >= 0 && index < len(sf.words) && sf.words[index] == token
 }
 
 type StopwordFilter struct {
@@ -30,6 +30,7 @@ type StopwordFilter struct {
 	dumpMode bool
 	word     []byte
 	j        int
+	words    []string
 }
 
 func (sf *StopwordFilter) dump(p []byte) bool {
@@ -53,7 +54,7 @@ func (sf *StopwordFilter) filterAndDump(p []byte) bool {
 	if len(word) > 0 {
 		word = word[:len(word)-1]
 	}
-	if isStopWord(string(word)) {
+	if sf.isStopWord(string(word)) {
 		sf.word = make([]byte, 0, 0)
 		return false
 	}
@@ -95,30 +96,14 @@ func (sf *StopwordFilter) Read(buffer []byte) (n int, err error) {
 }
 
 // Filter uses NewReader to perform non-streamed stop words filter
-func Filter(str string) (string, error) {
-	filter := NewReader(strings.NewReader(str))
+func Filter(str string, language corpus.Language) (string, error) {
+	filter := NewReader(strings.NewReader(str), language)
 	bytes, err := ioutil.ReadAll(filter)
 	return string(bytes), err
 }
 
 // NewReader takes a Reader stream and exposes the Read method which filters
 // out stop words
-func NewReader(reader io.Reader) *StopwordFilter {
-	return &StopwordFilter{reader, false, make([]byte, 0, 0), 0}
-}
-
-func init() {
-	for _, language := range languages {
-		wordFile, _ := os.Open("./corpus/" + language)
-
-		defer wordFile.Close()
-
-		scanner := bufio.NewScanner(wordFile)
-		scanner.Split(bufio.ScanLines)
-
-		for scanner.Scan() {
-			words = append(words, scanner.Text())
-		}
-	}
-	sort.Strings(words)
+func NewReader(reader io.Reader, language corpus.Language) *StopwordFilter {
+	return &StopwordFilter{reader, false, make([]byte, 0, 0), 0, corpus.Stopwords[language]}
 }
