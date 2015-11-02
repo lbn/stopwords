@@ -3,6 +3,7 @@ package stopwords
 import (
 	"bufio"
 	"io"
+	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
@@ -77,20 +78,28 @@ func (sf *StopwordFilter) Read(buffer []byte) (n int, err error) {
 			if strings.Contains(punctuation, string(letter[0])) {
 				// Skip letter if it is punctuation
 				continue
-			} else {
-				// Accumulate word letters
-				sf.word = append(sf.word, letter[0])
-				if letter[0] == ' ' {
-					// Dump all accumulated word letters and append a space
-					if sf.filterAndDump(buffer) {
-						return sf.j, nil
-					}
-				}
+			}
+			// Accumulate word letters
+			sf.word = append(sf.word, letter[0])
+
+			// Dump all accumulated word letters and append a space if a space is
+			// read
+			if letter[0] == ' ' && sf.filterAndDump(buffer) {
+				return sf.j, nil
 			}
 		}
 	}
 }
 
+// Filter uses NewReader to perform non-streamed stop words filter
+func Filter(str string) (string, error) {
+	filter := NewReader(strings.NewReader(str))
+	bytes, err := ioutil.ReadAll(filter)
+	return string(bytes), err
+}
+
+// NewReader takes a Reader stream and exposes the Read method which filters
+// out stop words
 func NewReader(reader io.Reader) *StopwordFilter {
 	return &StopwordFilter{reader, false, make([]byte, 0, 0), 0}
 }
