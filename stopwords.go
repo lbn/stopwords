@@ -1,7 +1,6 @@
 package stopwords
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"sort"
@@ -20,7 +19,6 @@ const punctuation = "!@£$%^&*()-_+¡€#,<.>/?`~'\"[{}];:\\|"
 
 func (sf *StopwordFilter) isStopWord(token string) bool {
 	token = strings.ToLower(token)
-	fmt.Println(token)
 	index := sort.SearchStrings(sf.words, token)
 	return index >= 0 && index < len(sf.words) && sf.words[index] == token
 }

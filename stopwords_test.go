@@ -3,6 +3,8 @@ package stopwords
 import (
 	"strings"
 	"testing"
+
+	"github.com/connectedventures/stopwords/corpus"
 )
 
 var (
@@ -12,7 +14,7 @@ var (
 
 func TestStream(t *testing.T) {
 	sen := strings.NewReader(sentence)
-	filter := NewReader(sen)
+	filter := NewReader(sen, corpus.English)
 
 	outdata := make([]byte, 0, 0)
 	for {
@@ -35,7 +37,7 @@ func TestStream(t *testing.T) {
 }
 
 func TestNonStream(t *testing.T) {
-	actualOutput, err := Filter(sentence)
+	actualOutput, err := Filter(sentence, corpus.English)
 	if err != nil || actualOutput != expected {
 		t.Logf("Expected: %s | Length: %d", expected, len(expected))
 		t.Logf("Actual:   %s | Length: %d", actualOutput, len(actualOutput))
