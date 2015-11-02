@@ -73,6 +73,9 @@ func (sf *StopwordFilter) Read(buffer []byte) (n int, err error) {
 		n, err := sf.source.Read(letter)
 		if err == io.EOF {
 			sf.filterAndDump(buffer)
+			if sf.j == 0 {
+				return 0, io.EOF
+			}
 			return sf.j, nil
 		} else if n == 1 {
 			if strings.Contains(punctuation, string(letter[0])) {
