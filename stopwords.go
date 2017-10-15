@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/connectedventures/stopwords/corpus"
+	"github.com/jeffprestes/stopwords/corpus"
 )
 
 var languages = []string{
