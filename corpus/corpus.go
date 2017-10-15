@@ -1,12 +1,24 @@
 package corpus
 
-import "sort"
+import (
+	"encoding/csv"
+	"fmt"
+	"os"
+	"sort"
+	"strings"
+	"unicode"
+
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
+)
 
 type Language int
 
 const (
 	English Language = iota
 	Spanish
+	Portuguese
 )
 
 var (
@@ -460,7 +472,33 @@ var (
 )
 
 func init() {
+	Portuguese := []string{"ola"}
+	stopwordDefinitions, err := os.Open("corpus/portuguese")
+	if err == nil {
+		csvReader := csv.NewReader(stopwordDefinitions)
+		words, err := csvReader.ReadAll()
+		if err == nil {
+			for _, word := range words {
+				//fmt.Printf("words: %+v\n", word[0])
+				Portuguese = append(Portuguese, RemoveDiacriticMark(word[0]))
+			}
+		} else {
+			fmt.Println("Could not read portuguese definition corpus: ", err.Error())
+		}
+	} else {
+		fmt.Println("Could not open portuguese definition corpus: ", err.Error())
+	}
+	Stopwords[2] = Portuguese
 	for _, words := range Stopwords {
 		sort.Strings(words)
 	}
+}
+
+//RemoveDiacriticMark removes diacritic marks very common in latin languages
+func RemoveDiacriticMark(txt string) string {
+	txt = strings.ToLower(txt)
+	txt = strings.TrimSpace(txt)
+	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+	txt, _, _ = transform.String(t, txt)
+	return txt
 }

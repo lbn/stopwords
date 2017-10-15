@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/connectedventures/stopwords/corpus"
+	"github.com/jeffprestes/stopwords/corpus"
 )
 
 var languages = []string{
@@ -17,10 +17,11 @@ var languages = []string{
 
 const punctuation = "!@£$%^&*()-_+¡€#,<.>/?`~'\"[{}];:\\|"
 
-func (sf *StopwordFilter) isStopWord(token string) bool {
+func (sf *StopwordFilter) isStopWord(token string) (wordStatus bool) {
 	token = strings.ToLower(token)
 	index := sort.SearchStrings(sf.words, token)
-	return index >= 0 && index < len(sf.words) && sf.words[index] == token
+	wordStatus = index >= 0 && index < len(sf.words) && sf.words[index] == token
+	return
 }
 
 type StopwordFilter struct {
@@ -49,10 +50,9 @@ func (sf *StopwordFilter) dump(p []byte) bool {
 func (sf *StopwordFilter) filterAndDump(p []byte) bool {
 	// Delete the last character (space) when running the check
 	word := sf.word
-	if len(word) > 0 {
-		word = word[:len(word)-1]
-	}
-	if sf.isStopWord(string(word)) {
+	strWord := strings.TrimSpace(string(word))
+
+	if sf.isStopWord(strWord) {
 		sf.word = make([]byte, 0, 0)
 		return false
 	}
@@ -97,7 +97,7 @@ func (sf *StopwordFilter) Read(buffer []byte) (n int, err error) {
 func Filter(str string, language corpus.Language) (string, error) {
 	filter := NewReader(strings.NewReader(str), language)
 	bytes, err := ioutil.ReadAll(filter)
-	return string(bytes), err
+	return strings.TrimSpace(string(bytes)), err
 }
 
 // NewReader takes a Reader stream and exposes the Read method which filters

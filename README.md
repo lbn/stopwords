@@ -2,6 +2,15 @@
 stopwords is a simple Go library to remove [stop
 words](https://en.wikipedia.org/wiki/Stop_words) from a body of text.
 
+## Instructions how to use
+Please, check the stopwords_test.go
+
+## Additional languages
+Just add support to import other corpuses besides English, Spanish and Portuguese. PR are welcomed.
+
+## Dependency
+In your program you will need to create a folder called corpus and add the specific corpus file to it.
+
 ## Algorithm
 Stop words are sorted on start up and stored in a slice. The algorithm
 accumulates letters in memory until it finds the end of the word (space
