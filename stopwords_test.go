@@ -66,31 +66,6 @@ func TestStreamPt(t *testing.T) {
 	}
 }
 
-func TestStreamJoao(t *testing.T) {
-	sen := strings.NewReader(corpus.RemoveDiacriticMark(name))
-	filter := NewReader(sen, corpus.Portuguese)
-
-	outdata := make([]byte, 0, 0)
-	for {
-		buf := make([]byte, 10)
-		n, err := filter.Read(buf)
-		if err != nil || n == 0 {
-			break
-		}
-
-		outdata = append(outdata, buf[:n]...)
-	}
-
-	actualOutput := string(outdata)
-	expectedName = corpus.RemoveDiacriticMark(expectedName)
-
-	if actualOutput != expectedName {
-		t.Logf("Expected: %s | Length: %d", expectedName, len(expectedName))
-		t.Logf("Actual:   %s | Length: %d", actualOutput, len(actualOutput))
-		t.Fatal("Actual output does not match the expected output")
-	}
-}
-
 func TestNonStream(t *testing.T) {
 	actualOutput, err := Filter(sentence, corpus.English)
 	if err != nil || actualOutput != expected {
