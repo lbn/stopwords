@@ -1,6 +1,7 @@
 package stopwords
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"sort"
@@ -17,10 +18,18 @@ var languages = []string{
 
 const punctuation = "!@£$%^&*()-_+¡€#,<.>/?`~'\"[{}];:\\|"
 
-func (sf *StopwordFilter) isStopWord(token string) bool {
+func (sf *StopwordFilter) isStopWord(token string) (wordStatus bool) {
 	token = strings.ToLower(token)
 	index := sort.SearchStrings(sf.words, token)
-	return index >= 0 && index < len(sf.words) && sf.words[index] == token
+	wordStatus = index >= 0 && index < len(sf.words) && sf.words[index] == token
+	if token == "n�o" {
+		for i, b := range token {
+			fmt.Printf("i: %d - %+v ", i, b)
+		}
+		fmt.Println(" ")
+		fmt.Println("Token: ", token, " indice: ", index, " status: ", wordStatus)
+	}
+	return
 }
 
 type StopwordFilter struct {
