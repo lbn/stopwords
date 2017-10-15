@@ -480,7 +480,7 @@ func init() {
 		if err == nil {
 			for _, word := range words {
 				//fmt.Printf("words: %+v\n", word[0])
-				Portuguese = append(Portuguese, word[0])
+				Portuguese = append(Portuguese, RemoveDiacriticMark(word[0]))
 			}
 		} else {
 			fmt.Println("Could not read portuguese definition corpus: ", err.Error())
